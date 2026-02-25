@@ -10,7 +10,7 @@
     "electron": "electron .",
     "build": "vite build",
     "build:electron": "npm run build && electron-builder",
-    "release": "vite build && electron-builder --win --config --publish always",
+    "release": "vite build && npx dotenv-cli -e .env -- electron-builder --win --config --publish always",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -21,7 +21,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "dotenv": "^17.3.1",
+    "dotenv-cli": "^7.4.2",
     "@types/node": "^22.14.0",
     "@types/xlsx": "^0.0.36",
     "@vitejs/plugin-react": "^5.0.0",
