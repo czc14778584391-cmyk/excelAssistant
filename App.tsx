@@ -600,10 +600,12 @@ const App: React.FC = () => {
             <button
               type="button"
               onClick={handleCheckUpdate}
-              className="px-3 py-1.5 text-sm text-white/80 hover:text-white hover:bg-white/20 rounded transition-colors"
+              className="p-1.5 text-white/80 hover:text-white hover:bg-white/20 rounded transition-colors"
               title="检查更新"
             >
-              检查更新
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
             </button>
           )}
           {/* 字段映射文档按钮 */}
