@@ -10,6 +10,7 @@
     "electron": "electron .",
     "build": "vite build",
     "build:electron": "npm run build && electron-builder",
+    "release": "vite build && electron-builder --win --config --publish always",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -65,8 +66,10 @@
       "artifactName": "${productName}.${ext}"
     },
     "publish": {
-      "provider": "generic",
-      "url": "http://9.134.50.217/update"
+      "provider": "github",
+      "owner": "czc14778584391-cmyk",
+      "repo": "excelAssistant",
+      "releaseType": "release"
     }
   }
 }
