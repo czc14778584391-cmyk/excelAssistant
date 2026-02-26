@@ -4,25 +4,44 @@
  */
 
 /**
- * 查找字段在表头中的索引（支持模糊匹配）
+ * 查找字段在表头中的索引（优先精确匹配，再模糊匹配，避免短列名误匹配）
+ * 例如配置「对方账号名称」时，若表头中先有「对方」会误匹配；现优先精确匹配再按最长匹配
  * @param headers - 表头数组
  * @param fieldName - 字段名
  * @returns 字段索引，如果找不到返回 -1
  */
 export function findFieldIndex(headers: string[], fieldName: string): number {
   if (!fieldName || !fieldName.trim()) return -1;
-  
-  const fieldLower = fieldName.trim().toLowerCase();
-  
-  return headers.findIndex((h) => {
+
+  const fieldTrimmed = fieldName.trim();
+  const fieldLower = fieldTrimmed.toLowerCase();
+
+  // 1. 优先精确匹配（含 trim 后相等）
+  const exactIndex = headers.findIndex((h) => {
     if (!h) return false;
-    const hLower = String(h).trim().toLowerCase();
-    return (
+    return String(h).trim().toLowerCase() === fieldLower;
+  });
+  if (exactIndex >= 0) return exactIndex;
+
+  // 2. 模糊匹配：仅当「表头包含字段名」或「字段名包含表头」时匹配，且优先取「表头与字段名相等或更长」的项，避免「对方」抢配「对方账号名称」
+  let bestIndex = -1;
+  let bestHeaderLen = -1;
+  headers.forEach((h, index) => {
+    if (!h) return;
+    const hTrimmed = String(h).trim();
+    const hLower = hTrimmed.toLowerCase();
+    const match =
       hLower === fieldLower ||
       hLower.includes(fieldLower) ||
-      fieldLower.includes(hLower)
-    );
+      fieldLower.includes(hLower);
+    if (!match) return;
+    // 在多个匹配中优先选表头与字段名等长或更长的（更具体）
+    if (hTrimmed.length >= bestHeaderLen) {
+      bestHeaderLen = hTrimmed.length;
+      bestIndex = index;
+    }
   });
+  return bestIndex;
 }
 
 /**
