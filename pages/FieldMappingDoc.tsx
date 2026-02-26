@@ -15,7 +15,7 @@ const FieldMappingDoc: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowConfigEditor(true)}
-            className="fixed top-[150px] right-20 z-40 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+            className="fixed top-[150px] right-40 z-40 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
           >
             编辑配置
           </button>
