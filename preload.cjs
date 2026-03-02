@@ -113,6 +113,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openPath: (dirPath) => {
     return ipcRenderer.invoke('shell:openPath', dirPath);
   },
+  /**
+   * 打开外部链接（使用系统默认浏览器）
+   * @param {string} url - 目标链接
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  openExternal: (url) => {
+    return ipcRenderer.invoke('shell:openExternal', url);
+  },
 
   // ---------- 更新相关 API（electron-updater） ----------
   /**

@@ -4,6 +4,7 @@ import Config from './pages/Config';
 import Help from './pages/Help';
 import MultiTool from './pages/MultiTool';
 import FieldMappingDoc from './pages/FieldMappingDoc';
+import AiNavPage from './pages/AiNavPage.tsx';
 import { PageType, SidebarMenuItem } from './types';
 import { COLORS } from './constants';
 import { useProcessing } from './contexts/ProcessingContext';
@@ -111,6 +112,7 @@ const App: React.FC = () => {
       children: [
         { id: 'tool-split', label: '按公司主体拆分汇总', page: 'tool-split' },
         { id: 'tool-merge', label: '多表合规化合并', page: 'tool-merge' },
+        { id: 'tool-ai-nav', label: 'AI导航', page: 'tool-ai-nav' },
       ],
     },
   ];
@@ -418,6 +420,11 @@ const App: React.FC = () => {
           style={{ display: currentPage === 'tool-merge' ? 'block' : 'none' }}
         >
           <MultiTool toolType="merge" />
+        </div>
+        <div
+          style={{ display: currentPage === 'tool-ai-nav' ? 'block' : 'none' }}
+        >
+          <AiNavPage />
         </div>
         <div style={{ display: currentPage === 'help' ? 'block' : 'none' }}>
           <Help />

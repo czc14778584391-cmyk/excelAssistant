@@ -43,6 +43,7 @@ declare global {
       getAppPath: (name?: string) => Promise<{ success: boolean; path?: string; error?: string }>;
       showItemInFolder: (filePath: string) => Promise<{ success: boolean; error?: string }>;
       openPath: (dirPath: string) => Promise<{ success: boolean; error?: string }>;
+      openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
       /** 检查更新（electron-updater） */
       checkForUpdates?: () => Promise<void>;
       /** 下载已发现的更新 */

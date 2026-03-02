@@ -490,3 +490,18 @@ ipcMain.handle('shell:openPath', async (event, dirPath) => {
     return { success: false, error: error.message };
   }
 });
+
+/**
+ * 打开外部链接（使用系统默认浏览器）
+ */
+ipcMain.handle('shell:openExternal', async (event, url) => {
+  try {
+    if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+      return { success: false, error: '仅允许打开 http/https 链接' };
+    }
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});

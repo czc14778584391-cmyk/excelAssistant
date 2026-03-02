@@ -38,7 +38,15 @@ export interface CategoryNode {
   children?: CategoryNode[];
 }
 
-export type PageType = 'home' | 'config' | 'config-json' | 'tool-split' | 'tool-merge' | 'help' | 'field-mapping-doc';
+export type PageType =
+  | 'home'
+  | 'config'
+  | 'config-json'
+  | 'tool-split'
+  | 'tool-merge'
+  | 'tool-ai-nav'
+  | 'help'
+  | 'field-mapping-doc';
 export type ConfigTab = 'mapping' | 'ai' | 'dictionary' | 'summaryHeader';
 export type ToolType = 'split' | 'merge';
 export type HelpTab = 'guide' | 'faq' | 'logs';
