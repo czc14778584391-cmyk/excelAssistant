@@ -11,6 +11,8 @@ interface Particle {
 
 // HelloKitty 动作图片列表
 const KITTY_IMAGES = ['hello.png', 'jump.png', 'stand.png', 'think.png'];
+const KITTY_CURSOR_OFFSET_Y = 30;
+const KITTY_MIN_TOP_Y = 24;
 
 /**
  * 鼠标特效组件 - 显示 HelloKitty
@@ -33,11 +35,12 @@ const MouseEffects: React.FC = () => {
     const createParticle = (x: number, y: number) => {
       // 随机选择一个 HelloKitty 动作图片
       const kittyImage = KITTY_IMAGES[Math.floor(Math.random() * KITTY_IMAGES.length)];
+      const adjustedY = Math.max(KITTY_MIN_TOP_Y, y - KITTY_CURSOR_OFFSET_Y);
       
       const newParticle: Particle = {
         id: particleId++,
         x,
-        y,
+        y: adjustedY,
         type: 'kitty',
         timestamp: Date.now(),
         kittyImage,
