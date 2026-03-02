@@ -57,6 +57,8 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
 
   /** 按文件 id 存储每个文件读取到的表头（用于去重列选择） */
   const [headersByFileId, setHeadersByFileId] = useState<Record<string, string[]>>({});
+  /** 按文件 id 存储用户选择的主体列（split 工具使用） */
+  const [entityHeaderNameByFileId, setEntityHeaderNameByFileId] = useState<Record<string, string>>({});
   /** 按文件 id 存储用户为该文件勾选的去重列 */
   const [dedupHeaderNamesByFileId, setDedupHeaderNamesByFileId] = useState<Record<string, string[]>>({});
   /** 按文件 id 标记该文件是否正在读表头 */
@@ -67,6 +69,17 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
   const [dedupDropdownRect, setDedupDropdownRect] = useState<{ left: number; top: number; width: number } | null>(null);
   const dedupDropdownRef = useRef<HTMLDivElement>(null);
   const dedupPortalRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 在未手动选择主体列时，按默认优先级挑选主体列
+   * @param headers - 文件表头
+   * @returns 默认主体列名（优先 公司，其次 公司-X；否则空串）
+   */
+  const pickDefaultEntityHeader = (headers: string[]): string => {
+    if (headers.includes('公司')) return '公司';
+    if (headers.includes('公司-X')) return '公司-X';
+    return '';
+  };
 
   /**
    * 获取生成多表配置文件路径
@@ -647,6 +660,13 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
       });
       return next;
     });
+    setEntityHeaderNameByFileId((prev) => {
+      const next: Record<string, string> = {};
+      fileIds.forEach((id: string) => {
+        if (prev[id] !== undefined) next[id] = prev[id];
+      });
+      return next;
+    });
     setDedupHeaderNamesByFileId((prev) => {
       const next: Record<string, string[]> = {};
       fileIds.forEach((id: string) => {
@@ -670,10 +690,19 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
         .then(({ headers }) => {
           if (!fileIdsRef.current.includes(id)) return;
           setHeadersByFileId((prev) => ({ ...prev, [id]: headers }));
+          // 仅在尚未手动选择时设置默认主体列
+          setEntityHeaderNameByFileId((prev) => {
+            if (prev[id] !== undefined) return prev;
+            return { ...prev, [id]: pickDefaultEntityHeader(headers) };
+          });
         })
         .catch(() => {
           if (!fileIdsRef.current.includes(id)) return;
           setHeadersByFileId((prev) => ({ ...prev, [id]: [] }));
+          setEntityHeaderNameByFileId((prev) => {
+            if (prev[id] !== undefined) return prev;
+            return { ...prev, [id]: '' };
+          });
         })
         .finally(() => {
           if (!fileIdsRef.current.includes(id)) return;
@@ -805,17 +834,22 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
           // 读取Excel文件（不识别银行类型）
           const { headers, data } = await readExcelFileSimple(fileObj.file);
 
-          // 查找"公司"列的索引
-          const entityColumnIndex = headers.findIndex(
-            (h) => h && (h === '公司' || h === '公司-X')
-          );
-
+          const selectedEntityHeader = entityHeaderNameByFileId[fileObj.id];
+          const entityHeaderName =
+            selectedEntityHeader && selectedEntityHeader.trim()
+              ? selectedEntityHeader
+              : pickDefaultEntityHeader(headers);
+          if (!entityHeaderName) {
+            addLog(`警告: 文件 ${fileObj.name} 未选择主体列，且未找到默认列（公司/公司-X），跳过`);
+            continue;
+          }
+          const entityColumnIndex = headers.indexOf(entityHeaderName);
           if (entityColumnIndex === -1) {
-            addLog(`警告: 文件 ${fileObj.name} 中未找到"公司"列，跳过`);
+            addLog(`警告: 文件 ${fileObj.name} 中未找到主体列 "${entityHeaderName}"，跳过`);
             continue;
           }
 
-          addLog(`在文件 ${fileObj.name} 中找到"公司"列`);
+          addLog(`在文件 ${fileObj.name} 中使用主体列 "${entityHeaderName}"`);
 
           // 处理每一行数据
           for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
@@ -857,9 +891,7 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
 
             if (templates.length === 0) {
               addLog(
-                `警告: 主体"${entityValue}"未找到对应的付款模板。可用主体: ${allEntities.join(
-                  ', '
-                )}`
+                `警告: 主体"${entityValue}"未找到对应的付款模板，跳过`
               );
               continue;
             }
@@ -1148,6 +1180,30 @@ const MultiTool: React.FC<MultiToolProps> = ({ toolType }) => {
                       ref={openDedupFileId === f.id ? dedupDropdownRef : undefined}
                       className="border-t border-slate-100 pt-2 relative"
                     >
+                      {activeTool === 'split' && (
+                        <div className="mb-2">
+                          <p className="text-[10px] text-slate-500 mb-1">主体列（按公司主体拆分使用）</p>
+                          {headersLoadingByFileId[f.id] ? (
+                            <p className="text-[10px] text-slate-400 italic">读取表头中...</p>
+                          ) : (headersByFileId[f.id]?.length ?? 0) > 0 ? (
+                            <select
+                              value={entityHeaderNameByFileId[f.id] ?? ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setEntityHeaderNameByFileId((prev) => ({ ...prev, [f.id]: value }));
+                              }}
+                              className="w-full text-left text-[10px] px-2 py-1.5 rounded border border-slate-200 bg-white text-slate-600 hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            >
+                              <option value="">请选择主体列</option>
+                              {(headersByFileId[f.id] ?? []).map((h) => (
+                                <option key={h} value={h}>{h}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-[10px] text-slate-400 italic">无表头或读取失败</p>
+                          )}
+                        </div>
+                      )}
                       <p className="text-[10px] text-slate-500 mb-1">去重列（可选，仅保留所选列取值相同的第一行）</p>
                       {headersLoadingByFileId[f.id] ? (
                         <p className="text-[10px] text-slate-400 italic">读取表头中...</p>
